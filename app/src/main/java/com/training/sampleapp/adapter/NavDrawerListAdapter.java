@@ -1,7 +1,7 @@
-package info.androidhive.slidingmenu.adapter;
+package com.training.sampleapp.adapter;
 
-import info.androidhive.slidingmenu.R;
-import info.androidhive.slidingmenu.model.NavDrawerItem;
+import com.training.sampleapp.R;
+import com.training.sampleapp.model.NavDrawerItem;
 
 import java.util.ArrayList;
 

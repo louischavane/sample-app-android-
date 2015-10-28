@@ -35,3 +35,6 @@ proguard/
 
 ### Android Patch ###
 gen-external-apklibs
+
+#AndroidTests
+androidTest/

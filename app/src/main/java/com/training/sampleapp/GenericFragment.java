@@ -1,4 +1,4 @@
-package info.androidhive.slidingmenu;
+package com.training.sampleapp;
 
 import android.app.Fragment;
 import android.os.Bundle;

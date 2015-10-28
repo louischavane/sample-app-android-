@@ -1,12 +1,12 @@
-package info.androidhive.slidingmenu;
+package com.training.sampleapp;
 
-import info.androidhive.slidingmenu.adapter.NavDrawerListAdapter;
-import info.androidhive.slidingmenu.model.NavDrawerItem;
+import com.mobileapptracker.MobileAppTracker;
+import com.training.sampleapp.adapter.NavDrawerListAdapter;
+import com.training.sampleapp.model.NavDrawerItem;
 
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
@@ -24,6 +24,8 @@ public class MainActivity extends Activity {
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
 	private ActionBarDrawerToggle mDrawerToggle;
+
+	public MobileAppTracker mobileAppTracker = null;
 
 	// nav drawer title
 	private CharSequence mDrawerTitle;
@@ -46,6 +48,13 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+
+		// Initialize MAT
+		mobileAppTracker = MobileAppTracker.init(getApplicationContext(),
+				"165042",
+				"ffbf699d5cb077d9bccfdeb6202383f4");
+
 
 		mTitle = mDrawerTitle = getTitle();
 
@@ -215,6 +224,15 @@ public class MainActivity extends Activity {
 		super.onConfigurationChanged(newConfig);
 		// Pass any configuration change to the drawer toggls
 		mDrawerToggle.onConfigurationChanged(newConfig);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		// Get source of open for app re-engagement
+		mobileAppTracker.setReferralSources(this);
+		// MAT will not function unless the measureSession call is included
+		mobileAppTracker.measureSession();
 	}
 
 }
