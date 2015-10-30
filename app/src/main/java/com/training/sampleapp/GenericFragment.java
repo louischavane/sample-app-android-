@@ -48,4 +48,6 @@ public class GenericFragment extends Fragment {
         return rootView;
     }
 
+
+
 }

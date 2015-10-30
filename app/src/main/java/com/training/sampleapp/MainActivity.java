@@ -1,5 +1,8 @@
 package com.training.sampleapp;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.ContentViewEvent;
+import com.facebook.appevents.AppEventsLogger;
 import com.mobileapptracker.MobileAppTracker;
 import com.training.sampleapp.adapter.NavDrawerListAdapter;
 import com.training.sampleapp.model.NavDrawerItem;
@@ -8,10 +11,13 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -20,7 +26,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-public class MainActivity extends Activity {
+import com.localytics.android.*;
+
+public class MainActivity extends FragmentActivity {
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
 	private ActionBarDrawerToggle mDrawerToggle;
@@ -54,6 +62,10 @@ public class MainActivity extends Activity {
 		mobileAppTracker = MobileAppTracker.init(getApplicationContext(),
 				"165042",
 				"ffbf699d5cb077d9bccfdeb6202383f4");
+
+
+		Localytics.registerPush("395567203258");
+
 
 
 		mTitle = mDrawerTitle = getTitle();
@@ -121,7 +133,16 @@ public class MainActivity extends Activity {
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-		if (savedInstanceState == null) {
+		//launch retain fragment when intent contains retain
+		Intent intent = getIntent();
+		Uri data = intent.getData();
+		if(data != null){
+			if (data.getPath().contains("retain")) {
+				Log.i("App", data.getPath());
+				displayView(4);
+			}
+		}
+		else if(savedInstanceState == null) {
 			// on first time display view for first nav item
 			displayView(0);
 		}
@@ -156,6 +177,10 @@ public class MainActivity extends Activity {
 		switch (item.getItemId()) {
 		case R.id.action_settings:
 			return true;
+
+		case R.id.action_crash:
+			throw new RuntimeException("This is a crash");
+
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -180,9 +205,21 @@ public class MainActivity extends Activity {
 		GenericFragment fragment = null;
 		fragment = new GenericFragment();
 
-		fragment.setTitle(navMenuTitles[position]);
+		String title = navMenuTitles[position];
+
+
+		fragment.setTitle(title);
 		fragment.setDescription(fragDescriptions[position]);
 		fragment.setImage(navMenuIcons.getResourceId(position, -1));
+
+		//tag screen view with Localytics
+		Localytics.tagEvent(title);
+
+		//tag screen with Crashlytics
+		Answers.getInstance().logContentView(new ContentViewEvent()
+				.putContentName(title)
+				.putContentType("pageview")
+				.putContentId(String.valueOf(position)));
 
 
 		if (fragment != null) {
@@ -233,6 +270,43 @@ public class MainActivity extends Activity {
 		mobileAppTracker.setReferralSources(this);
 		// MAT will not function unless the measureSession call is included
 		mobileAppTracker.measureSession();
+
+
+		Localytics.openSession();
+		Localytics.upload();
+
+		//Facebook tracking
+		AppEventsLogger.activateApp(this);
+
+		if (this instanceof FragmentActivity)
+		{
+			Localytics.setInAppMessageDisplayActivity((FragmentActivity) this);
+		}
+
+		Localytics.handleTestMode(this.getIntent());
+	}
+
+	public void onPause()
+	{
+		if (this instanceof FragmentActivity)
+		{
+			Localytics.dismissCurrentInAppMessage();
+			Localytics.clearInAppMessageDisplayActivity();
+		}
+
+		Localytics.closeSession();
+		Localytics.upload();
+
+		AppEventsLogger.deactivateApp(this);
+
+		super.onPause();
+	}
+
+	@Override
+	protected void onNewIntent(Intent intent)
+	{
+		super.onNewIntent(intent);
+		setIntent(intent);
 	}
 
 }
